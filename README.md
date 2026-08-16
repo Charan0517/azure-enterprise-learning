@@ -1,2 +1,10 @@
-# azure-enterprise-learning
-A hands-on enterprise Azure learning journey following the AZ-900 roadmap through real-world projects, architecture, security, Devops, monitoring, and production-ready cloud solutions
+# Azure Enterprise Learning
+
+Hands-on Azure learning notes and enterprise architecture exercises.
+
+## Learning Path
+
+### 01 - Cloud Foundations
+
+1. [Why Cloud Computing Exists](01-cloud-foundations/01-why-cloud-computing-exists.md)
+2. Virtualization *(next)*
