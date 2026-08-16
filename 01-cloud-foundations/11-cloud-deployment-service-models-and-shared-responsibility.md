@@ -1,1103 +1,502 @@
 # Cloud Deployment Models, Service Models, and Shared Responsibility
 
-Before learning individual Azure services, we need to answer three different architecture questions:
+This topic answers three different questions that are easy to mix together:
 
-1. **Where does the infrastructure run and who owns it?** → Deployment model
-2. **How much of the technology stack does the cloud provider manage for us?** → Service model
-3. **Which security and operational responsibilities belong to Microsoft and which belong to us?** → Shared Responsibility Model
+1. **Deployment model:** Where does the environment run, and who owns the infrastructure?
+2. **Service model:** How much of the technology stack do we operate ourselves?
+3. **Shared responsibility:** For the service model we choose, which security and operational duties belong to Microsoft and which remain ours?
 
-These concepts are related, but they are not the same thing.
-
----
-
-# 1. Real-world problem
-
-Imagine a company wants to launch an employee application.
-
-It needs:
-
-```text
-Physical servers
-Networking
-Storage
-Operating system
-Runtime
-Application code
-Database/data
-Identity and security
-Monitoring
-Backups
-```
-
-The company has several choices.
-
-It could buy servers and run everything itself. It could rent virtual machines from Azure. It could deploy the application to a managed application platform. Or it could simply subscribe to a complete software product.
-
-The business question becomes:
-
-> How much infrastructure and operational responsibility do we actually want to own?
-
-That question leads to deployment models, service models, and shared responsibility.
+These are related, but they solve different decisions. A company can use a **hybrid deployment model** while simultaneously using **IaaS, PaaS, and SaaS** for different parts of the same business system.
 
 ---
 
-# 2. Cloud deployment models
+## 1. Why this topic matters in a real enterprise
 
-A deployment model describes **where cloud infrastructure is operated and how it relates to the organization**.
+Imagine a company needs a new customer portal. The portal eventually depends on much more than application code:
 
-The main models are:
+- physical datacenter space;
+- physical servers;
+- storage hardware;
+- physical networking;
+- virtualization;
+- operating systems;
+- application runtimes;
+- web/application servers;
+- application code;
+- databases and data;
+- identity and access;
+- monitoring;
+- backup and recovery;
+- patching and security operations.
 
-```text
-Public Cloud
-Private Cloud
-Hybrid Cloud
-```
+If the company builds the whole environment in its own datacenter, it owns almost every responsibility. If the company deploys the portal to an Azure VM, Microsoft takes over the physical infrastructure and virtualization layer, but the company still manages the guest operating system and application. If the portal runs on a managed platform such as Azure App Service, Microsoft manages more of the operating platform. If the business requirement can be satisfied by a complete SaaS product, the organization may not need to build the underlying application platform at all.
 
-Multi-cloud is also an important architecture strategy, although it describes using multiple cloud providers rather than being one of the classic three deployment models.
+So the architecture question is not simply, **“Should we use cloud?”** A better question is:
 
----
+> **Which parts of this capability create business value for us, and which parts are undifferentiated infrastructure work that a provider can manage?**
 
-# 3. Public Cloud
-
-In a public cloud, a cloud provider owns and operates the underlying datacenter infrastructure and provides cloud services to many customers.
-
-Examples of major public cloud providers include Microsoft Azure, AWS, and Google Cloud.
-
-Conceptually:
-
-```text
-Microsoft Azure Datacenter
-        │
-        ├── Customer A workloads
-        ├── Customer B workloads
-        ├── Customer C workloads
-        └── Customer D workloads
-```
-
-Customers do **not** all share the same operating system or application environment. Azure uses virtualization, identity controls, network isolation, service boundaries, and other mechanisms to isolate workloads.
-
-This connects directly to our virtualization notes.
-
-## Why companies use public cloud
-
-```text
-No need to purchase datacenter hardware upfront
-Rapid provisioning
-Global regions
-Elastic capacity
-Managed services
-Consumption-based pricing options
-Large service catalog
-```
-
-## Example
-
-Instead of purchasing a physical server for a new application:
-
-```text
-Engineer → Azure Portal/API/IaC → Create VM → VM available in minutes
-```
-
-The physical server underneath remains Microsoft's responsibility.
+That is the reason deployment models and service models exist.
 
 ---
 
-# 4. Private Cloud
+# Part A — Cloud Deployment Models
 
-A private cloud is cloud-style infrastructure dedicated to a single organization.
+## 2. Public Cloud
 
-The infrastructure may exist in the organization's own datacenter or be hosted by another provider, depending on the implementation.
+In a public cloud, the cloud provider owns and operates large datacenters and offers computing services to many customers. Microsoft Azure is a public cloud.
 
-Conceptually:
+“Public” does **not** mean that every customer's VM, database, or files are publicly visible. The word describes the provider model: Azure infrastructure is operated by Microsoft and offered as a service to many organizations. Customer environments are separated using virtualization boundaries, identity controls, network isolation, service-level isolation, encryption, authorization, and other security mechanisms.
 
-```text
-Company Datacenter / Dedicated Environment
-        │
-        ├── Virtualization platform
-        ├── Internal automation
-        ├── Self-service provisioning
-        └── Company workloads only
-```
+### What the customer is really buying
 
-A private cloud is more than simply owning several servers.
+When we create an Azure VM, we do not buy a physical server rack. We request a logical resource with characteristics such as region, VM size, image, disk configuration, and networking. Azure decides how to place that workload on the underlying infrastructure.
 
-Cloud characteristics such as automation, pooling, self-service, and standardized provisioning are important.
+That changes the business model dramatically. Instead of waiting for procurement, installation, cabling, and hardware configuration, a team can provision infrastructure through the Azure Portal, CLI, PowerShell, APIs, or Infrastructure as Code.
 
-## Why use private cloud?
+### Why companies choose public cloud
 
-Possible reasons include:
+Public cloud is useful when organizations need rapid provisioning, elastic capacity, global regions, managed services, automation, or consumption-based billing. It can also reduce the amount of hardware the organization must purchase and operate itself.
 
-```text
-Special regulatory requirements
-Legacy hardware/software dependencies
-Very specific infrastructure control
-Data/location requirements
-Existing datacenter investments
-Specialized workloads
-```
+However, public cloud does not eliminate architecture work. Poorly designed public-cloud systems can still be insecure, unreliable, expensive, or difficult to operate.
 
-But the organization usually retains significantly more infrastructure-management responsibility.
+### Example
+
+Suppose a development team needs a temporary server for a proof of concept. In an on-premises environment, that request might require a hardware or virtualization ticket, IP assignment, storage allocation, operating-system installation, and firewall changes. In Azure, the team can create a VM in minutes if governance, quota, and permissions allow it.
+
+That speed is one of cloud's major benefits, but it is also why governance matters: if everyone can create anything without standards, cost and security problems can appear just as quickly.
 
 ---
 
-# 5. Hybrid Cloud
+## 3. Private Cloud
 
-Hybrid cloud combines private/on-premises infrastructure with public cloud services and connects them as part of an overall architecture.
+A private cloud is a cloud-style environment dedicated to one organization. It may run in the organization's own datacenter or in dedicated hosted infrastructure.
 
-Example:
+A private cloud is **not simply “a company owns some servers.”** A true private-cloud environment normally adopts cloud characteristics such as resource pooling, virtualization, automation, standardized provisioning, self-service, and centralized management.
 
-```text
-Company Datacenter
-      │
-      │ Private connectivity / VPN
-      ▼
-Microsoft Azure
-```
+### Why would an organization still want private cloud?
 
-A company might keep a legacy database on-premises while deploying a new web application in Azure.
+Some workloads need unusually deep hardware control, specialized appliances, strict location constraints, or integration with existing datacenter systems. Some companies also have large investments in datacenter infrastructure that cannot be retired immediately.
 
-```text
-Users
-  ↓
-Azure Web/Application Tier
-  ↓
-Secure connectivity
-  ↓
-On-Premises Database
-```
+Private cloud can provide more infrastructure control, but that control comes with responsibility. The organization must plan hardware capacity, refresh servers, operate virtualization, manage facilities or hosting contracts, and handle much more of the infrastructure lifecycle.
 
-Hybrid cloud is extremely common because enterprises rarely move every system to cloud at once.
+### Example
 
-## Reasons for hybrid architecture
-
-```text
-Gradual cloud migration
-Legacy dependencies
-Regulatory/data-location requirements
-Datacenter investments
-Disaster recovery
-Integration with on-prem systems
-```
-
-Hybrid does introduce additional complexity around networking, identity, monitoring, security, latency, and operations.
+A manufacturing company might have a legacy control system tied to specialized equipment inside a factory. Moving that system directly into public cloud may create latency, connectivity, or hardware-integration problems. The organization may keep that system in a private environment while modernizing other applications in Azure.
 
 ---
 
-# 6. Multi-cloud
+## 4. Hybrid Cloud
 
-Multi-cloud means intentionally using services from more than one cloud provider.
+Hybrid cloud combines on-premises or private-cloud infrastructure with public-cloud services as part of one overall architecture.
 
-Example:
+Hybrid is extremely common in enterprises because migrations are rarely all-or-nothing. Large organizations often have decades of applications, databases, identity systems, network dependencies, and regulatory requirements.
 
-```text
-Company
-│
-├── Microsoft Azure
-│
-└── Another cloud provider
-```
+### A real hybrid scenario
 
-Reasons may include acquisitions, business requirements, specialized services, customer requirements, geographic availability, or reducing certain provider dependencies.
+Imagine a company has a legacy Oracle database on-premises that cannot yet be migrated. The company builds a new web/API layer in Azure. The Azure application connects to the on-premises database using secure network connectivity.
 
-However, multi-cloud can increase complexity:
+The application is now hybrid because the business service spans both environments.
 
-```text
-Different IAM models
-Different networking
-Different monitoring
-Different policy systems
-Different billing
-Different service behavior
-Different engineering skills
-```
+The design must consider:
 
-Therefore:
+- connectivity between Azure and the datacenter;
+- DNS resolution across both environments;
+- latency between application and database;
+- identity integration;
+- firewall rules;
+- monitoring across both environments;
+- what happens when the private connection fails;
+- whether DR depends on one side being available.
 
-> Multi-cloud should solve a real requirement rather than being adopted simply because using multiple clouds sounds safer.
+Hybrid therefore provides flexibility, but it can also be operationally more complex than a system that runs entirely in one environment.
+
+### Common reasons for hybrid cloud
+
+Hybrid is often used for gradual migration, legacy integration, regulatory/data-location constraints, disaster recovery, or because some systems are not technically or economically suitable for immediate cloud migration.
 
 ---
 
-# 7. Deployment-model comparison
+## 5. Multi-cloud
+
+Multi-cloud means using services from more than one public cloud provider.
+
+For example, a company may use Azure for most enterprise applications but inherit workloads in another cloud after an acquisition. Another organization may intentionally use a specialized service from a second provider.
+
+Multi-cloud can be valid, but it introduces real complexity. Each provider has different identity models, networking, monitoring, policy systems, billing models, service names, deployment tools, and operational behaviors.
+
+For that reason, multi-cloud should solve a real business or technical requirement. It should not be adopted only because “using more clouds sounds safer.” In some cases, spreading workloads across providers can actually make security and operations harder.
+
+---
+
+## 6. Deployment-model comparison
 
 | Question | Public Cloud | Private Cloud | Hybrid Cloud |
 |---|---|---|---|
-| Underlying infrastructure | Cloud provider | Dedicated to organization | Combination |
-| Upfront hardware need | Usually low | Often higher | Depends |
-| Elasticity | Strong | Limited by owned/dedicated capacity | Combination |
-| Infrastructure control | Less physical control | Highest | Mixed |
-| Operational complexity | Provider manages more infrastructure | Organization manages more | Usually highest integration complexity |
-| Common use | Modern cloud workloads | Specialized/control-heavy workloads | Enterprise transition/integration |
+| Who owns underlying infrastructure? | Cloud provider | Organization/dedicated provider | Both sides are involved |
+| Upfront hardware investment | Usually lower | Often higher | Depends on retained on-prem footprint |
+| Elastic capacity | Generally strong | Limited by dedicated capacity | Combination |
+| Low-level infrastructure control | Lower | Highest | Mixed |
+| Integration complexity | Moderate | Internal | Often highest because two environments must work together |
+| Typical use | Modern cloud workloads, rapid provisioning | Specialized/control-heavy workloads | Enterprise migration and integration |
+
+The table is a guide, not a rule. A company's real design may include all three patterns across different applications.
 
 ---
 
-# 8. Deployment model is not service model
+# Part B — Cloud Service Models
 
-This distinction is important.
+## 7. Deployment model vs service model
 
-**Deployment model** asks:
+A deployment model answers **where/how the environment is hosted**.
 
-> Where/how is the cloud infrastructure deployed?
+A service model answers **how much of the technology stack the provider manages for us**.
 
-**Service model** asks:
+The usual service-model progression is:
 
-> Which layers do we manage versus the provider?
+- On-premises
+- IaaS — Infrastructure as a Service
+- PaaS — Platform as a Service
+- SaaS — Software as a Service
 
-For Azure, the main service models are:
-
-```text
-IaaS
-PaaS
-SaaS
-```
+As we move from on-premises toward SaaS, the provider operates more of the stack and the customer performs less infrastructure management. At the same time, the customer normally has less low-level control.
 
 ---
 
-# 9. Start with the complete technology stack
+## 8. Think in layers, not just product names
 
-Imagine a traditional application stack:
+A traditional application depends on several layers:
 
-```text
-Data
-Application
-Runtime
-Middleware
-Operating System
-Virtualization
-Servers
-Storage
-Networking
-Physical Datacenter
-```
+| Layer | Example |
+|---|---|
+| Physical datacenter | Building, power, cooling |
+| Physical networking | Switches, routers, cabling |
+| Physical servers/storage | Compute and storage hardware |
+| Virtualization | Hypervisor and host virtualization |
+| Operating system | Ubuntu, Windows Server |
+| Runtime/middleware | Java, .NET, Node.js, web server |
+| Application | Business code |
+| Data | Customer/business data |
+| Identity/configuration | Users, permissions, secrets, application settings |
 
-Someone must manage every layer.
-
-The difference between on-premises, IaaS, PaaS, and SaaS is primarily **who manages which layers**.
+Someone must manage every layer. The service model determines where the responsibility boundary sits.
 
 ---
 
-# 10. On-premises
+## 9. On-premises — maximum infrastructure responsibility
 
-With traditional on-premises infrastructure, the organization manages essentially the entire stack.
+In a traditional on-premises environment, the organization manages nearly the whole stack.
 
-```text
-YOU MANAGE
-──────────────
-Data
-Application
-Runtime
-Middleware
-Operating System
-Virtualization
-Servers
-Storage
-Networking
-Datacenter
-```
+If a physical host fails, the organization replaces or repairs it. If the hypervisor needs an upgrade, the organization owns that work. If the guest operating system needs patches, the organization patches it. If the application has a bug, the organization fixes it.
 
-If hardware fails, the organization replaces it.
+This provides maximum control, but it also means the company must maintain expertise and operational processes across hardware, virtualization, operating systems, networking, security, backup, and applications.
 
-If the hypervisor needs maintenance, the organization manages it.
-
-If the OS requires patching, the organization patches it.
-
-If the application breaks, the organization fixes it.
-
-This provides control but creates significant operational responsibility.
+The question is not whether on-premises is “bad.” Some workloads genuinely need it. The important point is to understand the operational cost of owning every layer.
 
 ---
 
-# 11. Infrastructure as a Service — IaaS
+## 10. IaaS — Infrastructure as a Service
 
-IaaS provides infrastructure resources such as virtual machines, networking, and storage while the cloud provider manages the underlying physical infrastructure and virtualization platform.
+Azure Virtual Machines are the clearest IaaS example.
 
-Azure Virtual Machines are the easiest example.
+With IaaS, Microsoft manages the Azure datacenter, physical servers, physical network, and virtualization platform. We receive a virtual machine and manage the guest operating system and workload.
 
-Our VM lab was IaaS.
+Our Ubuntu VM lab demonstrated this boundary perfectly. Azure created the VM, but Azure did not log into Ubuntu and install Nginx for us. We connected through SSH, installed Nginx, created the page, configured access, and maintained the guest environment.
 
-When we created Ubuntu in Azure, we received a virtual machine.
+### What control do we gain?
 
-Microsoft managed infrastructure such as:
+IaaS is useful when we need operating-system control, custom packages, specific runtimes, legacy software, or a migration path that closely resembles an existing server.
 
-```text
-Datacenter
-Physical networking
-Physical servers
-Underlying storage infrastructure
-Hypervisor / virtualization platform
-```
+### What responsibility do we keep?
 
-We managed the guest environment and workload, including responsibilities such as:
+We must think about OS patching, hardening, guest firewall configuration, installed software, malware protection where appropriate, application deployment, monitoring, backup, secrets, and lifecycle management.
 
-```text
-Guest operating system configuration
-OS patching
-Installed software
-Nginx
-Application files
-Application configuration
-Many guest-level security settings
-Data
-```
+That is the trade-off:
 
-That is why we could SSH into the VM and install Nginx ourselves.
-
-## Mental model
-
-```text
-Microsoft
-Physical infrastructure + virtualization
-        │
-        ▼
-Azure VM boundary
-        │
-        ▼
-Customer
-Guest OS + software + application + data
-```
-
-IaaS gives us significant control, but that control comes with operational responsibility.
+> **IaaS gives us server-level control because it leaves us responsible for the server-level operating environment.**
 
 ---
 
-# 12. Platform as a Service — PaaS
+## 11. PaaS — Platform as a Service
 
-PaaS provides a managed application or data platform where the cloud provider manages more of the underlying technology stack.
+PaaS moves the responsibility boundary upward. Instead of receiving a server that we must administer, we receive a managed application or data platform.
 
-A conceptual web application example is Azure App Service.
+Azure App Service is a useful conceptual example for web applications. We deploy application code and configure the application, while Azure manages much more of the operating system, platform, runtime hosting infrastructure, patching of the managed platform, and underlying servers.
 
-Instead of:
+### Why does PaaS exist?
 
-```text
-Create VM
-Install OS updates
-Install web server
-Configure runtime
-Maintain server
-Deploy application
-```
+Suppose a development team is building a customer API. The company earns money from the API's business functionality, not from manually patching Ubuntu or maintaining a web server. If the application fits a managed platform, PaaS can let the team spend more time on the application and less time on infrastructure operations.
 
-we can focus more directly on:
+### What do we still own?
 
-```text
-Application code
-Configuration
-Data
-```
+PaaS does not mean Azure owns our application. We still own the application code, business logic, data, identity decisions, secrets, configuration, authorization behavior, and secure development practices.
 
-while Azure manages more of the platform underneath.
+If our API has a programming bug that lets one customer read another customer's account, Azure cannot solve that simply because the application runs on PaaS.
 
-Conceptually:
+### PaaS trade-off
 
-```text
-YOU MANAGE
-────────────
-Application
-Data
-Application configuration
+PaaS reduces infrastructure-management work, but it also imposes platform constraints. We cannot normally treat the underlying managed host as if it were our personal VM and make arbitrary operating-system changes.
 
-AZURE MANAGES MORE OF
-─────────────────────
-Runtime/platform components
-Operating system
-Virtualization
-Servers
-Storage infrastructure
-Networking infrastructure
-Datacenter
-```
-
-Exact responsibility varies by Azure service, so the model is conceptual rather than a replacement for each service's documentation.
+So the decision is not “PaaS is always better.” The decision is whether the application's requirements fit the managed platform.
 
 ---
 
-# 13. Why PaaS exists
+## 12. SaaS — Software as a Service
 
-Suppose a development team wants to build a website.
+With SaaS, the provider delivers a complete application. The customer consumes and configures the software instead of building and operating the application stack.
 
-Their business value comes from the application—not from maintaining Ubuntu servers.
+Microsoft 365 is a familiar example. A company that needs business email usually does not create dozens of Azure VMs and build its own global mail platform. It subscribes to Microsoft 365 and focuses on users, licensing, access policies, data governance, security configuration, retention, and how employees use the service.
 
-IaaS approach:
+SaaS therefore removes a large amount of infrastructure and application-platform responsibility, but it does **not** remove customer responsibility completely.
 
-```text
-Develop app
-+ manage VM
-+ patch OS
-+ configure runtime
-+ configure web server
-+ monitor OS
-+ scale servers
-```
+The organization still decides:
 
-PaaS approach:
-
-```text
-Develop app
-+ deploy/configure application
-+ manage application/data concerns
-```
-
-Azure handles more platform operations.
-
-The trade-off is that the customer has less low-level control.
+- who receives accounts;
+- who becomes an administrator;
+- whether MFA and Conditional Access should be required;
+- what data employees may store;
+- how external sharing should work;
+- how retention and governance should be configured.
 
 ---
 
-# 14. Software as a Service — SaaS
+## 13. Responsibility comparison
 
-SaaS provides a complete application that customers consume rather than build and operate as infrastructure.
-
-A common example is Microsoft 365.
-
-Users do not create Exchange servers to use Outlook Online.
-
-They consume the software service.
-
-Conceptually:
-
-```text
-User
-  ↓
-SaaS Application
-  ↓
-Provider operates application platform and infrastructure
-```
-
-The customer still has responsibilities such as managing identities, access, data usage, device/security configuration, and application settings depending on the service.
-
-SaaS does **not** mean the customer has zero responsibility.
-
----
-
-# 15. IaaS vs PaaS vs SaaS — simple example
-
-Imagine we need email.
-
-## On-premises
-
-```text
-Buy servers
-Install OS
-Install mail software
-Patch everything
-Operate mail system
-```
-
-## IaaS
-
-```text
-Create Azure VMs
-Install/configure mail software
-Manage guest OS and application
-Azure manages physical infrastructure
-```
-
-## PaaS-style thinking
-
-Use a managed platform where the provider manages the underlying OS/runtime and we configure/deploy our workload.
-
-## SaaS
-
-```text
-Subscribe to Microsoft 365
-Create users
-Configure service
-Use email
-```
-
-As we move toward SaaS, the provider manages more technology layers.
-
----
-
-# 16. Pizza analogy — useful but incomplete
-
-A common analogy is pizza:
-
-```text
-On-prem → make everything yourself
-IaaS    → someone provides the kitchen/infrastructure
-PaaS    → more preparation/platform is provided
-SaaS    → finished meal/service
-```
-
-This is useful for initial understanding, but enterprise architecture requires thinking in actual technology layers and responsibilities rather than relying only on analogies.
-
----
-
-# 17. Service-model comparison
-
-| Area | On-Prem | IaaS | PaaS | SaaS |
+| Layer | On-Prem | IaaS | PaaS | SaaS |
 |---|---|---|---|---|
-| Physical datacenter | Customer | Provider | Provider | Provider |
-| Physical servers | Customer | Provider | Provider | Provider |
-| Hypervisor | Customer | Provider | Provider | Provider |
-| Guest OS | Customer | Customer | Mostly provider | Provider |
-| Runtime/platform | Customer | Customer | Provider | Provider |
-| Application | Customer | Customer | Customer | Provider |
-| Customer data | Customer | Customer | Customer | Customer responsibility remains significant |
-| Customer configuration/access | Customer | Customer | Customer | Customer |
+| Physical datacenter | Customer | Microsoft | Microsoft | Microsoft/provider |
+| Physical servers/network | Customer | Microsoft | Microsoft | Microsoft/provider |
+| Virtualization | Customer | Microsoft | Microsoft | Provider |
+| Guest OS | Customer | Customer | Provider manages platform OS | Provider |
+| Runtime/middleware | Customer | Customer | Mostly provider-managed | Provider |
+| Application code | Customer | Customer | Customer | Provider |
+| Business data | Customer | Customer | Customer | Customer responsibility remains important |
+| Identities/access/configuration | Customer | Customer | Customer | Customer responsibility remains important |
 
-The exact boundary depends on the specific service.
-
----
-
-# 18. Control vs management responsibility
-
-There is a general trade-off:
-
-```text
-More control
-    ▲
-    │ On-Prem
-    │ IaaS
-    │ PaaS
-    │ SaaS
-    ▼
-Less infrastructure management
-```
-
-IaaS gives greater low-level control.
-
-PaaS reduces infrastructure-management responsibility.
-
-SaaS allows users to consume a complete application.
-
-The correct choice depends on requirements.
+This table is intentionally conceptual. Every Azure service has its own exact responsibility boundary, so production architecture should verify the documentation for the service being used.
 
 ---
 
-# 19. When might we choose IaaS?
+# Part C — Shared Responsibility Model
 
-IaaS may be appropriate when:
+## 14. What “shared responsibility” actually means
 
-```text
-Application requires OS-level control
-Legacy software expects a server
-Custom software must be installed
-Specific OS configuration is required
-Migration needs minimal application changes
-```
+Cloud security is not transferred completely to Microsoft. Instead, Microsoft and the customer each own different parts of the system.
 
-Example:
+The easiest way to understand this is to ask:
 
-A legacy Java application requires a specific operating-system package and custom server configuration.
+> **Who is in the best position to control this layer?**
 
-Moving it first to an Azure VM may be simpler than redesigning it immediately for PaaS.
-
-This is often called a lift-and-shift style migration.
+Microsoft controls the Azure datacenter, physical hosts, and Azure platform. The customer controls its users, its data, its application logic, and many aspects of configuration. The exact dividing line moves depending on whether the workload is IaaS, PaaS, or SaaS.
 
 ---
 
-# 20. When might we choose PaaS?
+## 15. What Microsoft always manages in Azure cloud services
 
-PaaS may be appropriate when:
+Microsoft is responsible for the physical Azure cloud infrastructure: datacenter facilities, physical hosts, physical networking, and the provider-side platform components associated with the service.
 
-```text
-Team wants to focus on application development
-OS management provides little business value
-Managed scaling/availability features are useful
-Application fits the platform constraints
-Faster deployment is important
-```
+If the physical server hosting our VM experiences a hardware problem, we do not travel to the Azure datacenter and replace the motherboard. That is Microsoft's responsibility.
 
-Example:
-
-A new web API can run on a supported managed application platform without requiring custom OS access.
-
-PaaS may reduce operational overhead.
+This is one of the major operational benefits of public cloud.
 
 ---
 
-# 21. When might we choose SaaS?
+## 16. What customers never completely give away
 
-SaaS may be appropriate when the business requirement is already solved by a mature product.
+Even in SaaS, the customer remains responsible for important business decisions around data, identities, access, and configuration.
 
-Example:
+Azure cannot know automatically that Alice should be allowed to see payroll data while Bob should not. The organization must design and configure those permissions.
 
-Requirement:
+Likewise, Microsoft can protect the Azure platform, but it cannot prevent a developer from intentionally writing insecure business logic if the application allows it.
 
-```text
-Company needs business email and collaboration
-```
-
-Instead of building an email platform on VMs, the company can consume Microsoft 365.
-
-The engineering question should always be:
-
-> Does building and operating this capability ourselves provide business value?
+This is why “moving to cloud” does not remove the need for security architecture.
 
 ---
 
-# 22. Shared Responsibility Model
+## 17. Shared responsibility in our Azure VM lab
 
-Moving to cloud does not mean Microsoft becomes responsible for everything.
+Our Ubuntu VM was IaaS, so the boundary was very visible.
 
-Cloud security and operations follow a **shared responsibility model**.
+**Microsoft managed:**
 
-Both Microsoft and the customer have responsibilities.
+- Azure datacenter;
+- physical servers;
+- physical network;
+- virtualization/hypervisor platform;
+- underlying cloud control infrastructure.
 
-The boundary changes depending on whether we use IaaS, PaaS, or SaaS.
+**We managed:**
 
----
+- Ubuntu guest OS;
+- SSH configuration;
+- operating-system patches;
+- Nginx installation;
+- web content;
+- application configuration;
+- network rules we selected;
+- data stored in the VM;
+- whether the VM was securely operated.
 
-# 23. Responsibilities Microsoft always owns in Azure cloud services
-
-For Azure cloud infrastructure, Microsoft is responsible for the physical cloud infrastructure, including areas such as:
-
-```text
-Physical datacenter
-Physical hosts
-Physical network
-```
-
-Customers do not enter an Azure datacenter to replace failed disks in the physical server hosting their VM.
-
-Microsoft operates that infrastructure.
-
----
-
-# 24. Responsibilities customers always retain
-
-Some responsibilities never disappear simply because we use cloud.
-
-Customers remain responsible for important areas such as:
-
-```text
-Data
-Identities/accounts
-Access decisions
-Endpoint/device considerations
-How the service is configured and used
-```
-
-The exact division varies by service, but a company must still decide:
-
-```text
-Who should access the data?
-Which users should be administrators?
-What information can be stored?
-How should identities be protected?
-How should application settings be configured?
-```
-
-Azure cannot make those business decisions automatically.
+If Ubuntu had an unpatched vulnerability because we ignored updates, that would not be fixed simply by saying “the VM is hosted in Azure.”
 
 ---
 
-# 25. Shared responsibility in IaaS
+## 18. Shared responsibility in PaaS
 
-Consider our Ubuntu VM.
+With a managed web platform, Microsoft takes over more of the operating system and runtime hosting platform. That reduces our patching and server-administration burden.
 
-Microsoft manages the physical infrastructure and virtualization platform.
+But our responsibilities become more concentrated around the application itself:
 
-But if we never patch Ubuntu and the guest OS becomes vulnerable, that is generally our responsibility.
+- secure code;
+- authorization;
+- secrets and connection settings;
+- data protection;
+- identity configuration;
+- network exposure choices;
+- logging and monitoring;
+- application lifecycle.
 
-```text
-Microsoft
-─────────
-Datacenter
-Physical servers
-Physical networking
-Hypervisor
-
-Customer
-────────
-Guest OS
-OS patches
-Installed software
-Application
-Guest firewall/configuration
-Data
-Identity/access configuration
-```
-
-This is why IaaS requires strong operations practices.
+PaaS therefore changes **what** we manage; it does not eliminate management.
 
 ---
 
-# 26. Shared responsibility in PaaS
+## 19. Shared responsibility in SaaS
 
-With PaaS, Azure takes responsibility for more layers.
+With SaaS, the provider runs the complete application platform, but the organization still controls how its users consume the service.
 
-For a managed application platform, Azure manages the underlying OS/platform infrastructure.
+For Microsoft 365, for example, the customer still makes decisions about user accounts, administrative roles, external sharing, data governance, authentication policy, and endpoint access.
 
-But we still manage our application and data.
-
-If our application code has an authorization bug that exposes customer records, Azure cannot automatically fix the business logic.
-
-```text
-Azure
-────────
-Infrastructure
-OS/platform
-Managed runtime/service components
-
-Customer
-────────
-Application code
-Data
-Identity/access choices
-Application configuration
-Secure development
-```
-
-PaaS removes some operational responsibility, not application responsibility.
+A stolen administrator account can still cause serious damage even though the company never manages the underlying SaaS servers.
 
 ---
 
-# 27. Shared responsibility in SaaS
+# Part D — How to Choose a Model
 
-With SaaS, the provider operates nearly the entire application stack.
+## 20. A practical decision process
 
-But customers still manage how their organization uses the service.
+Start from the business requirement, not from the Azure product name.
 
-Example questions:
+### Choose or retain IaaS when:
 
-```text
-Who gets an account?
-Who is an administrator?
-Should MFA be required?
-Who can share documents externally?
-What data may users upload?
-```
+The workload needs guest-OS control, custom server software, legacy compatibility, low-level configuration, or a lift-and-shift migration path.
 
-These remain customer governance/security responsibilities.
+### Consider PaaS when:
 
----
+The application can run within a managed platform and the team would rather spend time on application functionality than operating servers.
 
-# 28. Security does not disappear as we move to SaaS
+### Consider SaaS when:
 
-The type of security work changes.
+A mature product already solves the business capability and building the capability ourselves provides little competitive value.
 
-```text
-On-Prem / IaaS
-More infrastructure + OS security work
+### Keep private/on-premises components when:
 
-PaaS
-More application + identity + configuration focus
+The workload has hardware, regulatory, latency, or legacy requirements that make immediate public-cloud migration impractical.
 
-SaaS
-More identity + access + data governance + configuration focus
-```
+### Use hybrid when:
 
-So the correct statement is not:
-
-> SaaS means no security work.
-
-It is:
-
-> The provider manages more technical layers, while the customer remains responsible for how identities, data, access, and configuration are used.
+The complete business service needs both Azure and on-premises/private systems.
 
 ---
 
-# 29. Example — our Azure VM
+## 21. Migration scenario: from legacy server to modern cloud
 
-Let's connect this directly to what we already built.
+Imagine a company has a Java application running on an old on-premises VM.
 
-We created:
+**Stage 1 — Rehost:** Move the application to an Azure VM with minimal code changes. This reduces physical-infrastructure responsibility but still leaves the team managing the OS and application server.
 
-```text
-Azure VM
-Ubuntu
-Nginx
-HTML page
-```
+**Stage 2 — Modernize:** Refactor parts of the application to run on managed Azure application/database services. This reduces operating-system and platform-management work.
 
-Microsoft handled:
+**Stage 3 — Replace where appropriate:** If some capabilities are commodity functions already solved by SaaS, stop maintaining custom software for those capabilities.
 
-```text
-Azure datacenter
-Physical server
-Physical networking
-Hypervisor
-Underlying cloud platform
-```
-
-We handled:
-
-```text
-VM configuration
-SSH access
-Ubuntu guest OS
-Nginx installation
-HTML file
-Application configuration
-NSG choices
-Our data
-```
-
-When we restarted the VM and the HTML file remained, the persistent disk preserved the VM's data.
-
-When we deallocated the VM, Azure released compute capacity while persistent resources remained.
-
-That entire lab demonstrates the IaaS boundary.
+This progression shows why cloud migration is not simply “move every server to Azure.” The larger goal is to choose the correct responsibility boundary for each workload.
 
 ---
 
-# 30. Example — same website using PaaS
+## 22. Cost is not a simple IaaS < PaaS < SaaS formula
 
-Suppose instead of creating Ubuntu and installing Nginx, we use an Azure managed web application platform.
+It is incorrect to assume that one service model is always cheaper.
 
-The workflow becomes conceptually:
+An Azure VM may have a lower visible monthly resource price than a managed PaaS service, but the VM also requires engineering time for patching, monitoring, backup, hardening, upgrades, and troubleshooting.
 
-```text
-Developer
-   ↓
-Application code
-   ↓
-Azure managed web platform
-   ↓
-Azure-managed OS/runtime/infrastructure
-```
-
-We no longer care which physical server or hypervisor hosts the application, and we normally do not administer the guest OS as we did with our VM.
-
-This is the shift from infrastructure management toward application management.
+The correct comparison is **total cost of ownership**, including operational effort, licensing, reliability, scaling, security, and support—not only the price displayed next to one Azure resource.
 
 ---
 
-# 31. Example — SaaS
+## 23. Security is not automatically solved by choosing PaaS or SaaS
 
-Suppose the requirement is not to build a website but simply to provide employee email.
+Managed services remove some infrastructure responsibilities and can reduce certain operational risks, but insecure configuration can still expose a workload.
 
-Instead of:
+Examples include:
 
-```text
-Azure VM
-   ↓
-Install mail server
-   ↓
-Patch and operate mail application
-```
+- public network access that should have been restricted;
+- overly broad identities and permissions;
+- secrets stored insecurely;
+- vulnerable application code;
+- missing logging;
+- weak authentication policies.
 
-we can consume a SaaS product such as Microsoft 365.
-
-The organization focuses on:
-
-```text
-Users
-Licensing
-Access
-Configuration
-Data governance
-Security settings
-```
-
-rather than running mail-server infrastructure.
+The service model changes the security boundary. It does not eliminate the need for secure design.
 
 ---
 
-# 32. Cloud model does not automatically determine cost
+# Part E — Common Misunderstandings
 
-A common mistake is:
+## “Public cloud means my data is public.”
 
-```text
-SaaS = cheapest
-PaaS = medium
-IaaS = expensive
-```
+No. Public cloud refers to the provider model. Workloads still use isolation, authentication, authorization, and network controls.
 
-That is not universally true.
+## “Private cloud means a few virtual machines in our datacenter.”
 
-Cost depends on:
+Not necessarily. Private cloud normally implies cloud-style automation, pooling, standardized provisioning, and management in addition to dedicated infrastructure.
 
-```text
-Workload
-Scale
-Licensing
-Traffic
-Storage
-Operations effort
-Architecture
-Service pricing
-Support requirements
-```
+## “Hybrid cloud means using two Azure regions.”
 
-A PaaS service may cost more per unit than a small VM but save substantial engineering/operations effort.
-
-Total cost of ownership matters, not only the Azure line-item price.
-
----
-
-# 33. Cloud model does not automatically determine security
-
-Another mistake is:
-
-```text
-PaaS is always secure
-IaaS is always insecure
-```
-
-Security depends on architecture and configuration.
-
-PaaS removes some infrastructure-management responsibilities, which can reduce certain risks, but insecure application code, weak identities, excessive permissions, exposed data, or bad configuration can still create serious vulnerabilities.
-
----
-
-# 34. Migration example
-
-Imagine an enterprise has a legacy application:
-
-```text
-On-Prem
-Physical/virtual server
-Windows/Linux
-Application server
-Legacy application
-Database
-```
-
-A migration path could be:
-
-```text
-Stage 1
-On-Prem → Azure VM
-Rehost / lift-and-shift
-
-Stage 2
-Modernize application components
-VM → managed application/database services
-
-Stage 3
-Use SaaS for capabilities that no longer need custom development
-```
-
-Not every application follows this path, but it demonstrates how service models influence modernization.
-
----
-
-# 35. Hybrid + service models can exist together
-
-Deployment and service models can be combined.
-
-Example:
-
-```text
-On-Premises
-Legacy Database
-      │
-      │ Hybrid connection
-      ▼
-Azure
-PaaS Web Application
-      │
-      ▼
-SaaS Identity/Business Service integration
-```
-
-An enterprise architecture can therefore contain multiple deployment and service models simultaneously.
-
----
-
-# 36. Decision framework
-
-When selecting a service model, ask:
-
-```text
-Do we need OS-level control?
-        │
-        ├── Yes → IaaS may be appropriate
-        │
-        └── No
-             ↓
-Does our application fit a managed platform?
-        │
-        ├── Yes → consider PaaS
-        │
-        └── No → evaluate IaaS/containers/other architecture
-
-Does a complete SaaS product already solve the business requirement?
-        │
-        ├── Yes → consider SaaS
-        └── No → build using appropriate platform
-```
-
-This is not a rigid rule. Architecture decisions require performance, security, cost, compliance, compatibility, reliability, and operational analysis.
-
----
-
-# 37. Common misunderstandings
-
-## “Public cloud means everyone can see my resources.”
-
-No. Public refers to the provider offering cloud services broadly. Customer workloads still use isolation and access controls.
-
-## “Private cloud means no virtualization.”
-
-No. Private cloud commonly uses virtualization and cloud-style automation but is dedicated to one organization.
-
-## “Hybrid means two Azure regions.”
-
-No. Two Azure regions are still public-cloud architecture. Hybrid combines public cloud with private/on-premises environments.
+No. Two Azure regions are still public-cloud architecture. Hybrid means the solution spans public cloud and private/on-premises infrastructure.
 
 ## “Multi-cloud and hybrid cloud are the same.”
 
-No. Hybrid combines public cloud with private/on-premises environments. Multi-cloud uses multiple public cloud providers.
+No. Multi-cloud uses more than one public-cloud provider. Hybrid combines public cloud with private/on-premises infrastructure.
 
-## “Azure VM is PaaS because Azure manages the hardware.”
+## “Azure VM is PaaS because Microsoft owns the hardware.”
 
-No. Azure VM is IaaS because we still manage the guest operating system and workload.
+No. Azure VM is IaaS because the customer still manages the guest operating system and workload.
 
-## “PaaS means Azure manages my application code.”
+## “PaaS means Microsoft manages our application.”
 
-No. Azure manages more of the platform; the customer still owns the application and data.
+No. Microsoft manages more of the platform. We still own our code, data, access model, and application configuration.
 
-## “SaaS means we have no security responsibility.”
+## “SaaS means we have no security responsibilities.”
 
-No. Identity, access, data, configuration, and governance responsibilities remain.
-
----
-
-# 38. Final mental model
-
-```text
-DEPLOYMENT MODEL
-Where/how does infrastructure run?
-
-Public      Private      Hybrid
-Cloud       Cloud        Cloud
-                         │
-                         └─ On-prem/private + public cloud
-
-
-SERVICE MODEL
-How much of the stack do we manage?
-
-On-Prem → IaaS → PaaS → SaaS
-
-More customer management ─────────────→ More provider management
-More low-level control   ←───────────── Less infrastructure management
-
-
-SHARED RESPONSIBILITY
-Who secures and operates each layer?
-
-Physical Azure infrastructure → Microsoft
-Guest OS in IaaS               → Customer
-Managed platform in PaaS       → Microsoft manages more
-Application/data/configuration → Customer responsibilities remain
-Identity/access decisions      → Customer responsibilities remain
-```
-
-The simplest way to remember everything is:
-
-> **Deployment model tells us where/how the environment is hosted. Service model tells us how much of the technology stack the provider manages. Shared responsibility tells us who is accountable for securing and operating each layer.**
+No. Identity, data, access, configuration, and governance responsibilities remain with the customer.
 
 ---
 
-# 39. What comes next
+# 24. Architecture companion
 
-Now that we understand where cloud environments run and who manages each technology layer, the next missing foundation topic is **Azure Global Infrastructure**:
+The corresponding architecture diagram is maintained on the Azure learning Miro board. The Miro diagram is the visual source for the stack/responsibility relationships; this Markdown file intentionally focuses on explanation instead of trying to recreate a large architecture diagram with ASCII art.
 
-```text
-Geographies
-      ↓
-Regions
-      ↓
-Datacenters
-      ↓
-Availability Zones
-      ↓
-Region pairs / cross-region design concepts
-```
+Miro board: https://miro.com/app/board/uXjVH3UtYkg=/
 
-That will connect the abstract concepts of High Availability and Disaster Recovery to Azure's actual physical/global architecture.
+---
+
+# 25. Official references
+
+Use current Microsoft documentation when making real architecture decisions because service capabilities and responsibility boundaries evolve.
+
+- Microsoft Learn — Describe cloud service types: https://learn.microsoft.com/training/modules/describe-cloud-service-types/
+- Microsoft Learn — Shared responsibility in the cloud: https://learn.microsoft.com/azure/security/fundamentals/shared-responsibility
+- Microsoft Learn — What is Azure App Service?: https://learn.microsoft.com/azure/app-service/overview
+- Microsoft Learn — Azure Virtual Machines overview: https://learn.microsoft.com/azure/virtual-machines/overview
+
+---
+
+# 26. Final mental model
+
+Remember these three questions:
+
+**Deployment model:** Where/how is the environment hosted?
+
+**Service model:** How much of the stack do we manage?
+
+**Shared responsibility:** For the service we chose, who is accountable for each security and operational layer?
+
+A mature enterprise can use public cloud, private infrastructure, hybrid connectivity, IaaS, PaaS, and SaaS at the same time. The correct architecture is the combination that satisfies the business requirement with the right balance of control, operational effort, security, reliability, and cost.
