@@ -1,38 +1,58 @@
 # Azure Enterprise Learning
 
-Hands-on Azure learning notes, labs, and enterprise architecture exercises.
+This repository is a structured Azure learning journey built around understanding **why a cloud capability exists**, how it works, what problem it solves, how we validate it hands-on, and how the same idea appears in enterprise architecture.
 
-The goal is to understand **why** Azure services exist, how the underlying architecture works, and then prove the concepts through hands-on labs before moving into enterprise design.
+It is **not** intended to be a collection of short certification definitions or duplicated notes.
 
-## Learning approach
+## Documentation standard
 
-Each major topic follows the same pattern:
+Every topic we complete should be treated as one learning unit consisting of the written note, the applicable hands-on lab, and the matching Miro architecture.
+
+A completed note should explain the topic in this order:
+
+1. **Real-world problem** — what engineers/companies struggled with before this capability existed.
+2. **Why the problem matters** — cost, availability, operations, security, scale, time, or another constraint.
+3. **How the solution evolved** — connect the new concept to what we already learned instead of presenting it as an isolated definition.
+4. **Core concept in depth** — terminology, internal behavior, components, relationships, boundaries, and lifecycle.
+5. **Concrete scenario** — follow one realistic workload/request/failure through the architecture step by step.
+6. **Azure implementation** — show how Azure represents the concept and what configuration decisions matter.
+7. **Hands-on validation** — when useful, document what we actually created, why each setting was selected, commands/actions performed, expected observations, troubleshooting, and cleanup.
+8. **Enterprise architecture** — explain how a production design differs from a learning lab.
+9. **Failure scenarios and trade-offs** — what breaks, what survives, what the service does not solve, and important limitations.
+10. **Cost, security, operations, HA/DR, monitoring, and governance implications** where applicable.
+11. **Common misunderstandings** — explicitly correct confusing interpretations we encountered while learning.
+12. **Miro architecture** — a real visual architecture/flow maintained on the Azure learning board. Text diagrams in Markdown may be used only as small explanatory aids; they are not a substitute for the Miro architecture.
+13. **Official references** — relevant Microsoft Learn/service documentation for behavior that may change.
+
+For a **new topic**, we learn/discuss it first. Only after the concept is clear do we finalize the GitHub note and architecture. For a topic already learned, we can document it directly from our completed discussion and lab.
+
+## Repository structure
+
+There must be **one canonical location for each topic**. We do not create a second folder or second note simply because we later improve the documentation. Improvements replace or expand the existing canonical note.
 
 ```text
-Real-world problem
-        ↓
-Why the problem exists
-        ↓
-Core cloud/Azure concept
-        ↓
-Architecture and failure boundaries
-        ↓
-Hands-on validation where useful
-        ↓
-Enterprise design considerations
-        ↓
-GitHub notes + Miro architecture diagram
+azure-enterprise-learning/
+│
+├── 01-cloud-foundations/
+│   └── Foundational concepts learned before individual Azure services
+│
+├── 02-compute/
+│   └── Azure compute services and associated labs
+│
+├── 03-networking/        # when this module begins
+├── 04-storage/           # later
+├── 05-databases/         # later
+├── 06-monitoring/        # later
+└── ...
 ```
 
-The notes are intentionally detailed. They are meant to explain the reasoning behind Azure rather than provide only certification definitions.
+Governance is currently part of the cloud-foundation learning rather than duplicated into another folder. If governance later becomes a full Azure implementation module (Azure Policy, RBAC implementation, landing zones, etc.), we will create that module intentionally at that point rather than duplicating foundation material.
 
 ---
 
-# Learning Path
+# Current Learning Path
 
 ## 01 — Cloud Foundations
-
-This module establishes the concepts required before studying individual Azure services.
 
 1. [Why Cloud Computing Exists](01-cloud-foundations/01-why-cloud-computing-exists.md)
 2. [Virtualization, Hypervisor, and VM Isolation](01-cloud-foundations/02-virtualization-hypervisor-and-isolation.md)
@@ -47,64 +67,36 @@ This module establishes the concepts required before studying individual Azure s
 11. [Azure Global Infrastructure](01-cloud-foundations/12-azure-global-infrastructure.md)
 12. [How All Cloud Foundation Concepts Connect](01-cloud-foundations/13-how-cloud-concepts-connect.md)
 
-> **Note on filenames:** Some files retain their original numeric prefixes because they were created incrementally during the learning process. The numbered list above is the authoritative learning order. This avoids unnecessary file renames and broken historical links while keeping the learning path clear.
+The filename numbering reflects the incremental learning history. The list above is the authoritative learning order until we intentionally normalize filenames in one controlled cleanup.
 
-### Foundation reference material
+## 02 — Compute
 
-The final concept-map note contains curated Microsoft Learn links for cloud concepts, reliability, Azure global infrastructure, Availability Zones, management groups, Azure Policy, and Azure RBAC. Product behavior should always be verified against current Microsoft documentation when implementing a real environment.
+1. [Azure Virtual Machines (IaaS) — Concepts + Our Ubuntu/Nginx Lab](02-compute/01-azure-virtual-machines.md)
 
----
-
-## 02 — Azure Governance and Organization
-
-1. [Tenant, Management Groups, Subscriptions, Resource Groups, and Resources](02-azure-governance/01-tenant-management-groups-subscriptions-resource-groups.md)
-
-This module takes the governance concepts from Cloud Foundations and applies them to the actual Azure resource hierarchy.
-
----
-
-## 03 — Compute
-
-1. [Azure Virtual Machines — Hands-On Lab](03-compute/01-azure-virtual-machines-hands-on.md)
-
-The VM lab validates concepts such as provisioning, VM sizing, CPU/memory, public/private IP addresses, Linux administration, Nginx, monitoring, stopping versus deallocating, and persistence of the OS disk.
+The VM unit connects virtualization and IaaS to a real Azure workload: provisioning, region and availability decisions, VM sizing, Ubuntu image, SSH authentication, NIC/private/public addressing, NSG rules, Nginx, persistent disks, monitoring, scaling, restart versus deallocation, cost, and production considerations.
 
 ---
 
 # Architecture documentation
 
-Architecture diagrams are maintained on the associated Miro Azure learning board. Diagrams are treated as part of the learning unit rather than as decoration: the written note explains the concept and the architecture diagram shows how the components and failure boundaries connect.
+The associated **Miro Azure learning board** is the visual architecture source for completed learning units.
+
+The purpose of a diagram is to show relationships and flow that are difficult to understand from prose alone: request paths, resource boundaries, failure boundaries, redundancy, identity/governance inheritance, network paths, replication, and service dependencies.
+
+We will not use large ASCII/text diagrams as a replacement for architecture. Small text flows can still be used inside notes when they clarify a single sequence.
 
 ---
 
-# Next major module — Azure Networking
+# Quality rule before moving forward
 
-The VM lab gives us a real compute resource. The next major module builds the networking foundation around that resource.
+Before adding a new topic we should confirm:
 
-Planned topics include:
+- there is no duplicate canonical note;
+- the previous topic is sufficiently detailed;
+- the applicable Miro architecture exists and matches the note;
+- the lab is documented if we performed one;
+- important subtopics from our discussion are not missing;
+- references are included where useful;
+- the repository learning path still reflects the actual order.
 
-```text
-Virtual Networks (VNet)
-        ↓
-Address spaces and CIDR
-        ↓
-Subnets
-        ↓
-Private vs public IP addressing
-        ↓
-Network Interfaces
-        ↓
-Network Security Groups
-        ↓
-Routing and route tables
-        ↓
-DNS
-        ↓
-VNet-to-VNet connectivity / peering
-        ↓
-Internet, hybrid and private connectivity
-        ↓
-Azure Load Balancer and application traffic concepts
-```
-
-Networking will continue using the same problem → concept → architecture → lab → enterprise-design approach.
+This keeps the repository useful as long-term learning documentation instead of allowing it to become a collection of disconnected files.
